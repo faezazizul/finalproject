@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>225</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- LOGIN / SIGN UP VIEW -->
+  <div class="login-card" id="login-view">
+    <div class="logo">225</div>
+    <div class="tagline">Your workouts. Your people. Your progress.</div>
+
+    <form id="login-form">
+      <div id="username-field" style="display: none;">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="faez_lifts" maxlength="20" />
+      </div>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com" required />
+
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="••••••••" required />
+
+      <button type="submit" id="submit-button">Log In</button>
+      <p class="form-message" id="login-message"></p>
+    </form>
+
+    <div class="switch-link">
+      <span id="switch-text">Don't have an account?</span>
+      <a href="#" id="switch-mode">Sign up</a>
+    </div>
+  </div>
+
+  <!-- PROFILE SETUP (for accounts created before profiles existed) -->
+  <div class="login-card" id="profile-setup-view" style="display: none;">
+    <div class="logo">225</div>
+    <div class="tagline">One more thing — pick a username.</div>
+
+    <form id="profile-setup-form">
+      <label for="setup-username">Username</label>
+      <input type="text" id="setup-username" placeholder="faez_lifts" maxlength="20" required />
+
+      <button type="submit" id="setup-submit-button">Continue</button>
+      <p class="form-message" id="setup-message"></p>
+    </form>
+
+    <div class="switch-link">
+      <a href="#" id="setup-logout">Log out instead</a>
+    </div>
+  </div>
+
+  <!-- DASHBOARD VIEW (hidden until logged in) -->
+  <div class="dashboard" id="dashboard-view" style="display: none;">
+    <div class="dashboard-header">
+      <div class="logo">225</div>
+      <button id="logout-button" class="logout-btn">Log Out</button>
+    </div>
+
+    <div id="main-content">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-workouts-btn">Workouts</button>
+      <button class="tab-btn" id="tab-feed-btn">Feed</button>
+      <button class="tab-btn" id="tab-insights-btn">Insights</button>
+      <button class="tab-btn" id="tab-people-btn">People</button>
+      <button class="tab-btn" id="tab-plans-btn">Plans</button>
+      <button class="tab-btn" id="tab-profile-btn">Profile</button>
+    </div>
+
+    <div id="workouts-view">
+      <div class="workout-card">
+        <div class="progress-header">
+          <h2>Log a Workout</h2>
+          <div class="metric-toggle">
+            <button class="metric-btn active" id="log-strength-btn">Strength</button>
+            <button class="metric-btn" id="log-cardio-btn">Cardio</button>
+          </div>
+        </div>
+
+        <form id="workout-form">
+          <label for="exercise-name">Exercise</label>
+          <select id="exercise-name" required>
+            <option value="">Select an exercise...</option>
+          </select>
+
+          <div class="input-row">
+            <div>
+              <label for="sets">Sets</label>
+              <input type="number" id="sets" placeholder="3" required min="1" />
+            </div>
+            <div>
+              <label for="reps">Reps</label>
+              <input type="number" id="reps" placeholder="8" required min="1" />
+            </div>
+            <div>
+              <label for="weight">Weight (lb)</label>
+              <input type="number" id="weight" placeholder="135" required min="0" />
+            </div>
+          </div>
+
+          <button type="submit" id="workout-submit-button">Save Workout</button>
+          <p class="form-message" id="workout-message"></p>
+        </form>
+
+        <form id="cardio-form" style="display: none;">
+          <label for="cardio-activity">Activity</label>
+          <select id="cardio-activity">
+            <option value="Run">Run</option>
+            <option value="Walk">Walk</option>
+            <option value="Bike">Bike</option>
+            <option value="Swim">Swim</option>
+            <option value="Row">Row</option>
+            <option value="Elliptical">Elliptical</option>
+          </select>
+
+          <label for="cardio-distance">Distance (mi)</label>
+          <input type="number" id="cardio-distance" placeholder="3.1" step="0.01" min="0.01" required />
+
+          <div class="input-row">
+            <div>
+              <label for="cardio-minutes">Minutes</label>
+              <input type="number" id="cardio-minutes" placeholder="28" min="0" required />
+            </div>
+            <div>
+              <label for="cardio-seconds">Seconds</label>
+              <input type="number" id="cardio-seconds" placeholder="30" min="0" max="59" />
+            </div>
+          </div>
+
+          <button type="submit" id="cardio-submit-button">Save Run</button>
+          <p class="form-message" id="cardio-message"></p>
+        </form>
+      </div>
+
+      <div class="workout-card" id="progress-card">
+        <div class="progress-header">
+          <h2>Progress</h2>
+          <div class="metric-toggle">
+            <button class="metric-btn active" id="progress-strength-btn">Strength</button>
+            <button class="metric-btn" id="progress-cardio-btn">Cardio</button>
+          </div>
+        </div>
+
+        <select id="progress-exercise">
+          <option value="">Log a workout to see progress</option>
+        </select>
+
+        <select id="progress-activity" style="display: none;">
+          <option value="">Log a run to see progress</option>
+        </select>
+
+        <div class="metric-toggle metric-toggle-row" id="strength-metrics">
+          <button class="metric-btn active" id="metric-weight">Weight</button>
+          <button class="metric-btn" id="metric-volume">Volume</button>
+        </div>
+
+        <div class="metric-toggle metric-toggle-row" id="cardio-metrics" style="display: none;">
+          <button class="metric-btn active" id="metric-distance">Distance</button>
+          <button class="metric-btn" id="metric-pace">Pace</button>
+          <button class="metric-btn" id="metric-duration">Time</button>
+        </div>
+
+        <div id="progress-chart" class="chart-wrap"></div>
+
+        <div class="progress-stats">
+          <div class="progress-stat">
+            <span class="progress-stat-value" id="stat-best">—</span>
+            <span class="progress-stat-label" id="stat-best-label">Best set</span>
+          </div>
+          <div class="progress-stat">
+            <span class="progress-stat-value" id="stat-volume">—</span>
+            <span class="progress-stat-label" id="stat-volume-label">Total volume</span>
+          </div>
+          <div class="progress-stat">
+            <span class="progress-stat-value" id="stat-sessions">—</span>
+            <span class="progress-stat-label">Sessions</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <h2>Your Workout History</h2>
+        <div id="workout-list">
+          <p class="empty-state">No workouts logged yet — add your first one above.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="feed-view" style="display: none;">
+      <div class="history-card">
+        <div class="feed-header">
+          <h2>Feed</h2>
+          <div class="feed-filter">
+            <button class="filter-btn active" id="filter-all">Everyone</button>
+            <button class="filter-btn" id="filter-following">Following</button>
+          </div>
+        </div>
+        <div id="feed-list">
+          <p class="empty-state">No posts yet — share a workout to get things started.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="insights-view" style="display: none;">
+      <div class="workout-card">
+        <h2>Training Load</h2>
+        <p class="field-hint">Acute:chronic workload ratio — your last 7 days measured against your 28-day baseline.</p>
+        <div id="acwr-panel">
+          <p class="empty-state">Log some sessions to see your training load.</p>
+        </div>
+      </div>
+
+      <div class="workout-card">
+        <div class="progress-header">
+          <h2>Strength Trends</h2>
+          <span class="field-hint" style="margin:0">Estimated 1RM, with plateau detection</span>
+        </div>
+        <div id="trends-panel">
+          <p class="empty-state">Log an exercise at least four times to see its trend.</p>
+        </div>
+      </div>
+
+      <div class="workout-card">
+        <h2>Weekly Volume</h2>
+        <div id="volume-chart" class="chart-wrap"></div>
+      </div>
+
+      <div class="workout-card">
+        <div class="progress-header">
+          <h2>Recommended For You</h2>
+          <button class="metric-btn" id="train-model-btn">Train Model</button>
+        </div>
+        <p class="field-hint">A collaborative filtering model trained in your browser on anonymised training profiles. It learns which exercises tend to be done by lifters similar to you.</p>
+        <div id="ml-panel">
+          <p class="empty-state">Select Train Model to generate recommendations.</p>
+        </div>
+      </div>
+
+      <div class="workout-card">
+        <h2>Your Training Archetype</h2>
+        <p class="field-hint">Discovered by clustering training profiles. The categories are not predefined — they emerge from the data.</p>
+        <div id="archetype-panel">
+          <p class="empty-state">Train the model to discover archetypes.</p>
+        </div>
+      </div>
+
+      <div class="workout-card">
+        <h2>Movement Balance</h2>
+        <div id="balance-panel">
+          <p class="empty-state">Log strength work to see your split.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="people-view" style="display: none;">
+      <div class="workout-card">
+        <div class="progress-header">
+          <h2>Suggested Partners</h2>
+          <button class="metric-btn" id="refresh-matches">Refresh</button>
+        </div>
+        <p class="field-hint">Ranked by training similarity, strength level, shared activities, and how close you train.</p>
+        <div id="matches-list">
+          <p class="empty-state">Log some workouts and add a training place to get suggestions.</p>
+        </div>
+      </div>
+
+      <div class="workout-card">
+        <h2>Find People</h2>
+        <div class="search-row">
+          <input type="text" id="people-search" placeholder="Search by username..." maxlength="20" />
+          <button id="people-search-button">Search</button>
+        </div>
+        <div id="people-results">
+          <p class="empty-state">Search for a username to find people to follow.</p>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <h2>Following</h2>
+        <div id="following-list">
+          <p class="empty-state">You're not following anyone yet.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="profile-view" style="display: none;">
+      <div class="workout-card">
+        <div class="profile-header">
+          <div class="profile-avatar" id="profile-avatar">?</div>
+          <div>
+            <div class="profile-username" id="profile-username">—</div>
+            <div class="profile-meta" id="profile-meta">—</div>
+          </div>
+        </div>
+
+        <form id="profile-form">
+          <!-- PROFILE PHOTO UPLOAD — disabled.
+               Firebase Cloud Storage requires the Blaze (pay-as-you-go) plan,
+               which this project isn't on. To re-enable: uncomment the block
+               below, uncomment the matching sections in script.js (search for
+               "PHOTO UPLOAD"), and publish the Storage security rules.
+          <label for="profile-photo">Profile photo</label>
+          <input type="file" id="profile-photo" accept="image/*" />
+          <p class="field-hint">JPG or PNG, up to 5MB.</p>
+          -->
+
+          <label for="profile-display-name">Display name</label>
+          <input type="text" id="profile-display-name" placeholder="Faez" maxlength="40" />
+
+          <label for="profile-bio">Bio</label>
+          <input type="text" id="profile-bio" placeholder="Chasing a 225 bench." maxlength="160" />
+
+          <div class="input-row">
+            <div>
+              <label for="profile-bodyweight">Bodyweight (lb)</label>
+              <input type="number" id="profile-bodyweight" placeholder="185" min="50" max="500" step="0.1" />
+            </div>
+            <div>
+              <label for="profile-category">Ranking category</label>
+              <select id="profile-category">
+                <option value="open">Open</option>
+                <option value="male">Men's</option>
+                <option value="female">Women's</option>
+              </select>
+            </div>
+          </div>
+          <p class="field-hint">Strength is scored relative to bodyweight using the DOTS coefficient, the standard used in competitive powerlifting. Separate curves exist for men's and women's categories; Open uses the more conservative curve.</p>
+
+          <label for="profile-goal">Primary goal</label>
+          <select id="profile-goal">
+            <option value="">Not set</option>
+            <option value="strength">Strength</option>
+            <option value="hypertrophy">Hypertrophy</option>
+            <option value="endurance">Endurance</option>
+            <option value="general">General fitness</option>
+          </select>
+
+          <button type="submit" id="profile-submit-button">Save Profile</button>
+          <p class="form-message" id="profile-message"></p>
+        </form>
+      </div>
+
+      <div class="workout-card">
+        <div class="progress-header">
+          <h2>Where You Train</h2>
+          <button class="metric-btn" id="toggle-location-form">Add Place</button>
+        </div>
+
+        <p class="field-hint map-hint">Search for a place, or click the map to drop a pin.</p>
+
+        <form id="location-form" style="display: none;">
+          <label for="location-name">Place name</label>
+          <input type="text" id="location-name" placeholder="Gold's Gym Silver Spring" maxlength="60" required />
+
+          <div class="input-row">
+            <div>
+              <label for="location-activity">Activity</label>
+              <select id="location-activity">
+                <option value="Strength">Strength</option>
+                <option value="Cardio">Cardio</option>
+                <option value="Pilates">Pilates</option>
+                <option value="Yoga">Yoga</option>
+                <option value="Swimming">Swimming</option>
+                <option value="Climbing">Climbing</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label for="location-when">Usually there</label>
+              <input type="text" id="location-when" placeholder="Weekday mornings" maxlength="40" />
+            </div>
+          </div>
+
+          <label for="location-search">Find the place</label>
+          <div class="search-row">
+            <input type="text" id="location-search" placeholder="Address or place name" maxlength="120" />
+            <button type="button" id="location-search-btn">Search</button>
+          </div>
+          <p class="field-hint" id="location-picked">No location selected yet.</p>
+
+          <button type="submit" id="location-submit-button">Save Place</button>
+          <p class="form-message" id="location-message"></p>
+        </form>
+
+        <div id="profile-map" class="map-wrap"></div>
+
+        <div id="my-locations-list">
+          <p class="empty-state">You haven't added any training places yet.</p>
+        </div>
+      </div>
+
+      <div class="workout-card" id="rank-card">
+        <h2>Rank</h2>
+        <div id="rank-panel">
+          <p class="empty-state">Add your bodyweight and log the big three lifts to be ranked.</p>
+        </div>
+      </div>
+
+      <div class="workout-card">
+        <div class="progress-header">
+          <h2>Achievements</h2>
+          <span class="field-hint" style="margin:0" id="achievement-count">—</span>
+        </div>
+        <div id="achievements-panel">
+          <p class="empty-state">Start logging to unlock achievements.</p>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <h2>Your Stats</h2>
+        <div class="stat-row">
+          <span class="stat-label">Workouts logged</span>
+          <span class="stat-value" id="stat-workouts">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Posts shared</span>
+          <span class="stat-value" id="stat-posts">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Following</span>
+          <span class="stat-value" id="stat-following">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Followers</span>
+          <span class="stat-value" id="stat-followers">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="plans-view" style="display: none;">
+      <div class="workout-card">
+        <div class="progress-header">
+          <h2>Create a Plan</h2>
+          <button class="metric-btn" id="toggle-plan-form">New Plan</button>
+        </div>
+
+        <form id="plan-form" style="display: none;">
+          <label for="plan-title">Plan name</label>
+          <input type="text" id="plan-title" placeholder="Push Pull Legs — 6 Week Build" maxlength="80" required />
+
+          <label for="plan-description">Description</label>
+          <input type="text" id="plan-description" placeholder="What this plan is for and who it suits." maxlength="200" />
+
+          <div class="input-row">
+            <div>
+              <label for="plan-level">Level</label>
+              <select id="plan-level">
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+              </select>
+            </div>
+            <div>
+              <label for="plan-days">Days per week</label>
+              <input type="number" id="plan-days" placeholder="4" min="1" max="7" required />
+            </div>
+          </div>
+
+          <label>Exercises</label>
+          <div id="plan-exercise-rows"></div>
+          <button type="button" class="metric-btn add-exercise-btn" id="add-exercise-row">+ Add exercise</button>
+
+          <button type="submit" id="plan-submit-button">Publish Plan</button>
+          <p class="form-message" id="plan-message"></p>
+        </form>
+      </div>
+
+      <div class="history-card">
+        <h2>Your Plans</h2>
+        <div id="my-plans-list">
+          <p class="empty-state">You haven't published a plan yet.</p>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <h2>Subscribed</h2>
+        <div id="subscribed-plans-list">
+          <p class="empty-state">You're not subscribed to any plans yet.</p>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <h2>Browse Plans</h2>
+        <div id="browse-plans-list">
+          <p class="empty-state">Loading plans...</p>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- PLAN DETAIL (takes over the screen when a plan is opened) -->
+    <div id="plan-detail-view" style="display: none;">
+      <button class="back-btn" id="plan-back-btn">← Back</button>
+      <div class="workout-card">
+        <div class="detail-header">
+          <div>
+            <h2 id="plan-detail-title">—</h2>
+            <div class="detail-meta">
+              by <a href="#" class="user-link" id="plan-detail-author">—</a>
+              <span id="plan-detail-info"></span>
+            </div>
+          </div>
+          <button class="follow-btn" id="plan-subscribe-btn" data-subscribed="false">Subscribe</button>
+        </div>
+        <p class="detail-description" id="plan-detail-description"></p>
+      </div>
+
+      <div class="history-card">
+        <h2>Exercises</h2>
+        <div id="plan-detail-exercises"></div>
+      </div>
+    </div>
+
+    <!-- USER DETAIL (someone else's profile) -->
+    <div id="user-detail-view" style="display: none;">
+      <button class="back-btn" id="user-back-btn">← Back</button>
+      <div class="workout-card">
+        <div class="profile-header">
+          <div class="profile-avatar" id="user-detail-avatar">?</div>
+          <div>
+            <div class="profile-username" id="user-detail-username">—</div>
+            <div class="profile-meta" id="user-detail-meta">—</div>
+          </div>
+        </div>
+        <p class="detail-description" id="user-detail-bio"></p>
+        <button class="follow-btn" id="user-detail-follow-btn" data-following="false" data-uid="">Follow</button>
+      </div>
+
+      <div class="history-card">
+        <h2>Where They Train</h2>
+        <div id="user-detail-map" class="map-wrap"></div>
+        <div id="user-detail-locations">
+          <p class="empty-state">No training places listed.</p>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <h2>Their Plans</h2>
+        <div id="user-detail-plans">
+          <p class="empty-state">No plans published.</p>
+        </div>
+      </div>
+
+      <div class="history-card">
+        <h2>Their Posts</h2>
+        <div id="user-detail-posts">
+          <p class="empty-state">No posts yet.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
